@@ -1,6 +1,8 @@
+use crate::global_state::GlobalState;
 use crate::loading::FontAssets;
 use crate::GameState;
 use bevy::prelude::*;
+use bevy_pancam::PanCam;
 
 pub struct MenuPlugin;
 
@@ -24,8 +26,8 @@ struct ButtonColors {
 impl Default for ButtonColors {
     fn default() -> Self {
         ButtonColors {
-            normal: Color::rgb(0.15, 0.15, 0.15),
-            hovered: Color::rgb(0.25, 0.25, 0.25),
+            normal: Color::rgb_u8(53, 186, 243),
+            hovered: Color::rgb_u8(255, 255, 225),
         }
     }
 }
@@ -34,12 +36,30 @@ fn setup_menu(
     mut commands: Commands,
     font_assets: Res<FontAssets>,
     button_colors: Res<ButtonColors>,
+    global_state: Res<GlobalState>,
 ) {
-    commands.spawn(Camera2dBundle::default());
+    let offset = global_state.block_size * 5;
+    let max_vertical = ((global_state.world_rows * global_state.block_size) / 2) + offset;
+    let max_horizontal = ((global_state.world_cols * global_state.block_size) / 2) + offset;
+
+    commands.spawn((
+        Camera2dBundle::default(),
+        PanCam {
+            grab_buttons: vec![MouseButton::Middle],
+            max_scale: Some(3.),
+            min_scale: 1.,
+            min_x: Some(-(max_horizontal as f32)),
+            max_x: Some(max_horizontal as f32),
+            min_y: Some(-(max_vertical as f32)),
+            max_y: Some(max_vertical as f32),
+            ..default()
+        },
+    ));
+
     commands
         .spawn(ButtonBundle {
             style: Style {
-                size: Size::new(Val::Px(120.0), Val::Px(50.0)),
+                size: Size::new(Val::Px(200.0), Val::Px(75.0)),
                 margin: UiRect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
@@ -56,7 +76,7 @@ fn setup_menu(
                         style: TextStyle {
                             font: font_assets.fira_sans.clone(),
                             font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
+                            color: Color::BLACK,
                         },
                     }],
                     alignment: Default::default(),

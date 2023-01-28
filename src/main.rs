@@ -5,6 +5,8 @@ use bevy::prelude::*;
 use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
+// use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_pancam::PanCamPlugin;
 use game_growth::GamePlugin;
 use std::io::Cursor;
 use winit::window::Icon;
@@ -12,7 +14,7 @@ use winit::window::Icon;
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 1 })
-        .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
+        .insert_resource(ClearColor(Color::rgb_u8(63, 161, 245)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             window: WindowDescriptor {
                 width: 800.,
@@ -23,6 +25,8 @@ fn main() {
             },
             ..default()
         }))
+        .add_plugin(PanCamPlugin::default())
+        // .add_plugin(WorldInspectorPlugin)
         .add_plugin(GamePlugin)
         .add_startup_system(set_window_icon)
         .run();
