@@ -47,7 +47,6 @@ fn setup_menu(
         Camera2dBundle::default(),
         PanCam {
             grab_buttons: vec![MouseButton::Middle],
-            max_scale: Some(2.),
             min_scale: 1.,
             min_x: Some(-(max_horizontal as f32)),
             max_x: Some(max_horizontal as f32),

@@ -17,8 +17,8 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb_u8(63, 161, 245)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             window: WindowDescriptor {
-                width: 800.,
-                height: 600.,
+                width: 960.,
+                height: 640.,
                 title: "Game Growth".to_string(),
                 canvas: Some("#bevy".to_owned()),
                 ..Default::default()
