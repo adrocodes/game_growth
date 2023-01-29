@@ -49,4 +49,25 @@ pub struct TextureAssets {
     pub texture_stone: Handle<Image>,
     #[asset(path = "world/water.png")]
     pub texture_water: Handle<Image>,
+
+    #[asset(path = "world/tree_1.png")]
+    pub texture_tree_1: Handle<Image>,
+    #[asset(path = "world/tree_2.png")]
+    pub texture_tree_2: Handle<Image>,
+    #[asset(path = "world/tree_3.png")]
+    pub texture_tree_3: Handle<Image>,
+    #[asset(path = "world/tree_4.png")]
+    pub texture_tree_4: Handle<Image>,
+
+    #[asset(path = "world/stone_1.png")]
+    pub texture_stone_1: Handle<Image>,
+    #[asset(path = "world/stone_2.png")]
+    pub texture_stone_2: Handle<Image>,
+    #[asset(path = "world/stone_3.png")]
+    pub texture_stone_3: Handle<Image>,
+
+    #[asset(path = "world/berry_1.png")]
+    pub texture_berry_1: Handle<Image>,
+    #[asset(path = "world/berry_2.png")]
+    pub texture_berry_2: Handle<Image>,
 }
