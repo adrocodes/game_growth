@@ -33,22 +33,6 @@ impl Plugin for MousePositionPlugin {
     }
 }
 
-pub fn debug_world_position(position: Res<WorldPosition>) {
-    println!("WORLD - ({}, {})", position.0.x, position.0.y);
-}
-
-pub fn debug_cursor_ui_position(position: Res<CursorPositionUi>) {
-    println!("CURSOR UI - ({}, {})", position.0.x, position.0.y);
-}
-
-pub fn debug_cursor_screen_position(position: Res<CursorPositionScreen>) {
-    println!("CURSOR SCREEN - ({}, {})", position.0.x, position.0.y);
-}
-
-pub fn debug_mouse_position(position: Res<MousePosition>) {
-    println!("MOUSE POSITION - {:?}", position);
-}
-
 fn track_mouse_position(
     windows: Res<Windows>,
     query: Query<(&Camera, &GlobalTransform)>,
