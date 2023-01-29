@@ -6,6 +6,7 @@ mod loading;
 mod menu;
 mod mouse_position;
 mod player;
+mod tiles;
 mod world_gen;
 
 use crate::audio::InternalAudioPlugin;
