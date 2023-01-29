@@ -11,7 +11,7 @@ impl Default for GlobalState {
     fn default() -> Self {
         GlobalState {
             world_rows: 32,
-            world_cols: 32,
+            world_cols: 48,
             block_size: 64,
         }
     }

@@ -38,7 +38,8 @@ fn setup_menu(
     button_colors: Res<ButtonColors>,
     global_state: Res<GlobalState>,
 ) {
-    let offset = global_state.block_size * 5;
+    let offset = global_state.block_size * 0;
+    let max_vertical_offset = global_state.block_size * 0;
     let max_vertical = ((global_state.world_rows * global_state.block_size) / 2) + offset;
     let max_horizontal = ((global_state.world_cols * global_state.block_size) / 2) + offset;
 
@@ -46,11 +47,11 @@ fn setup_menu(
         Camera2dBundle::default(),
         PanCam {
             grab_buttons: vec![MouseButton::Middle],
-            max_scale: Some(3.),
+            max_scale: Some(2.),
             min_scale: 1.,
             min_x: Some(-(max_horizontal as f32)),
             max_x: Some(max_horizontal as f32),
-            min_y: Some(-(max_vertical as f32)),
+            min_y: Some(-(max_vertical as f32 + max_vertical_offset as f32)),
             max_y: Some(max_vertical as f32),
             ..default()
         },
