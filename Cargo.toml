@@ -31,6 +31,7 @@ image = { version = "0.24", default-features = false }
 bevy_pancam = { version = "0.7.0", features = ["bevy_egui"] }
 bevy-inspector-egui = "0.17.0"
 noise = "0.8.2"
+bevy_prototype_lyon = "0.7.2"
 
 [build-dependencies]
 embed-resource = "1.4"
