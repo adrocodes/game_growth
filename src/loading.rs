@@ -72,6 +72,9 @@ pub struct TextureAssets {
     pub texture_berry_1: Handle<Image>,
     #[asset(path = "world/berry_2.png")]
     pub texture_berry_2: Handle<Image>,
+
+    #[asset(path = "textures/selector.png")]
+    pub texture_selector: Handle<Image>,
 }
 
 #[derive(AssetCollection, Resource)]

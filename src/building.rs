@@ -1,6 +1,12 @@
 use bevy::prelude::*;
 
-use crate::{loading::BuildingAssets, GameState};
+use crate::{
+    bounds::Bounds2,
+    loading::{BuildingAssets, TextureAssets},
+    mouse_position::MousePosition,
+    tiles::Tile,
+    GameState,
+};
 
 #[derive(Component)]
 pub struct Buildable;
@@ -65,13 +71,35 @@ impl Plugin for BuildingPlugin {
 pub struct BuildingIndicator;
 
 impl BuildingIndicator {
-    fn spawn(mut commands: Commands) {}
+    fn spawn(mut commands: Commands, textures: Res<TextureAssets>) {
+        commands.spawn((
+            BuildingIndicator,
+            SpriteBundle {
+                texture: textures.texture_selector.clone(),
+                transform: Transform::from_xyz(0.0, 0.0, 5.0),
+                ..default()
+            },
+            Name::new("BuildingIndicator"),
+            // Visibility { is_visible: false },
+        ));
+    }
 
-    fn track_position() {
-        todo!();
+    fn track_position(
+        mut indicator_query: Query<&mut Transform, With<BuildingIndicator>>,
+        tile_query: Query<&Bounds2, With<Tile>>,
+        mouse: Res<MousePosition>,
+    ) {
+        let mut transform = indicator_query.single_mut();
+
+        for bound in tile_query.iter() {
+            if bound.in_bounds_centered(mouse.world) {
+                transform.translation = Vec3::new(bound.position.x, bound.position.y, 5.0);
+                return;
+            }
+        }
     }
 
     fn track_visibility() {
-        todo!();
+        // todo!();
     }
 }
