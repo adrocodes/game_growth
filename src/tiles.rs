@@ -4,33 +4,33 @@ use rand::Rng;
 
 #[derive(PartialEq, Debug)]
 pub enum TileType {
-    DIRT,
-    GRASS,
-    SAND,
-    STONE,
-    WATER,
+    Dirt,
+    Grass,
+    Sand,
+    Stone,
+    Water,
 }
 
 impl TileType {
     pub fn texture(&self, assets: &TextureAssets) -> Handle<Image> {
         match self {
-            TileType::DIRT => assets.texture_dirt.clone(),
-            TileType::GRASS => assets.texture_grass.clone(),
-            TileType::SAND => assets.texture_sand.clone(),
-            TileType::STONE => assets.texture_stone.clone(),
-            TileType::WATER => assets.texture_water.clone(),
+            TileType::Dirt => assets.texture_dirt.clone(),
+            TileType::Grass => assets.texture_grass.clone(),
+            TileType::Sand => assets.texture_sand.clone(),
+            TileType::Stone => assets.texture_stone.clone(),
+            TileType::Water => assets.texture_water.clone(),
         }
     }
 
     pub fn from_perlin(value: &f32) -> Self {
         let as_percentage: i32 = (value.abs() * 100.) as i32;
         match as_percentage {
-            0..=3 => TileType::WATER,
-            4..=10 => TileType::SAND,
-            11..=15 => TileType::DIRT,
-            16..=95 => TileType::GRASS,
-            96..=100 => TileType::STONE,
-            _ => TileType::GRASS,
+            0..=3 => TileType::Water,
+            4..=10 => TileType::Sand,
+            11..=15 => TileType::Dirt,
+            16..=95 => TileType::Grass,
+            96..=100 => TileType::Stone,
+            _ => TileType::Grass,
         }
     }
 }
@@ -43,7 +43,7 @@ pub struct ResourceTile;
 
 pub trait ResourceItem {
     fn texture(&self, textures: &TextureAssets) -> Handle<Image>;
-    fn yieldAmount(&self) -> usize;
+    fn yield_amount(&self) -> usize;
 }
 
 #[derive(Component)]
@@ -70,7 +70,7 @@ impl ResourceItem for ResourceTree {
         }
     }
 
-    fn yieldAmount(&self) -> usize {
+    fn yield_amount(&self) -> usize {
         match self.lvl {
             1 => 1,
             2 => 3,
@@ -104,7 +104,7 @@ impl ResourceItem for ResourceStone {
         }
     }
 
-    fn yieldAmount(&self) -> usize {
+    fn yield_amount(&self) -> usize {
         match self.lvl {
             1 => 1,
             2 => 3,
@@ -136,7 +136,7 @@ impl ResourceItem for ResourceBerry {
         }
     }
 
-    fn yieldAmount(&self) -> usize {
+    fn yield_amount(&self) -> usize {
         self.lvl
     }
 }
