@@ -14,11 +14,11 @@ use winit::window::Icon;
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 1 })
-        .insert_resource(ClearColor(Color::rgb_u8(63, 161, 245)))
+        .insert_resource(ClearColor(Color::BLACK))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             window: WindowDescriptor {
                 width: 960.,
-                height: 640.,
+                height: 700.,
                 title: "Game Growth".to_string(),
                 canvas: Some("#bevy".to_owned()),
                 ..Default::default()
