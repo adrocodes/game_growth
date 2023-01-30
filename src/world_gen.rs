@@ -1,3 +1,4 @@
+use crate::building::Buildable;
 use crate::tiles::*;
 use crate::{bounds::Bounds2, global_state::GlobalState, loading::TextureAssets, GameState};
 use bevy::prelude::*;
@@ -49,13 +50,19 @@ impl WorldGenerator {
         let x_offset = (size * (cols as f32 / 2.)) - (size / 2.);
         let y_offset = (size * (rows as f32 / 2.)) - (size / 2.);
 
+        let mut buildable_tiles: Vec<Entity> = vec![];
+
         let mut x = 0;
         for row in atlas {
             let mut y = 0;
 
             for col in row {
                 let tile_type = TileType::from_perlin(&col);
-                let is_grass = tile_type == TileType::GRASS;
+                let is_grass = tile_type == TileType::Grass;
+
+                let buildable_tile_types = vec![TileType::Grass, TileType::Dirt, TileType::Stone];
+                let mut is_buildable = buildable_tile_types.contains(&tile_type);
+
                 let texture = tile_type.texture(&textures);
                 let position = Vec2::new(size * x as f32 - x_offset, size * y as f32 - y_offset);
                 let transform = Transform::from_xyz(position.x, position.y, 0.0);
@@ -71,7 +78,7 @@ impl WorldGenerator {
                     .id();
 
                 if is_grass {
-                    WorldGenerator::spawn_grass_resources(
+                    is_buildable = WorldGenerator::spawn_grass_resources(
                         &mut commands,
                         &id,
                         texture,
@@ -84,6 +91,11 @@ impl WorldGenerator {
                         transform,
                         ..default()
                     });
+                }
+
+                if is_buildable {
+                    commands.entity(id).insert(Buildable);
+                    buildable_tiles.push(id);
                 }
 
                 y += 1;
@@ -99,7 +111,7 @@ impl WorldGenerator {
         grass_texture: Handle<Image>,
         transform: Transform,
         textures: &TextureAssets,
-    ) {
+    ) -> bool {
         let mut rng = rand::thread_rng();
         let roll = rng.gen::<f32>();
         let percentage = (roll * 100.) as i32;
@@ -118,6 +130,8 @@ impl WorldGenerator {
                         transform,
                         ..default()
                     });
+
+                return false;
             }
             16..=21 => {
                 let stone = ResourceStone::default();
@@ -132,6 +146,8 @@ impl WorldGenerator {
                         transform,
                         ..default()
                     });
+
+                return false;
             }
             22..=30 => {
                 let berry = ResourceBerry::default();
@@ -146,6 +162,8 @@ impl WorldGenerator {
                         transform,
                         ..default()
                     });
+
+                return false;
             }
             _ => {
                 commands.entity(*entity).insert(SpriteBundle {
@@ -153,6 +171,8 @@ impl WorldGenerator {
                     transform,
                     ..default()
                 });
+
+                return true;
             }
         };
     }
