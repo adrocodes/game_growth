@@ -15,6 +15,8 @@ impl Plugin for LoadingPlugin {
                 .with_collection::<FontAssets>()
                 .with_collection::<AudioAssets>()
                 .with_collection::<TextureAssets>()
+                .with_collection::<PersonAssets>()
+                .with_collection::<BuildingAssets>()
                 .continue_to_state(GameState::Menu),
         );
     }
@@ -70,4 +72,44 @@ pub struct TextureAssets {
     pub texture_berry_1: Handle<Image>,
     #[asset(path = "world/berry_2.png")]
     pub texture_berry_2: Handle<Image>,
+}
+
+#[derive(AssetCollection, Resource)]
+pub struct PersonAssets {
+    #[asset(path = "workers/person.png")]
+    pub person: Handle<Image>,
+    #[asset(path = "workers/person_1.png")]
+    pub person_1: Handle<Image>,
+    #[asset(path = "workers/person_2.png")]
+    pub person_2: Handle<Image>,
+    #[asset(path = "workers/person_3.png")]
+    pub person_3: Handle<Image>,
+    #[asset(path = "workers/person_4.png")]
+    pub person_4: Handle<Image>,
+    #[asset(path = "workers/person_5.png")]
+    pub person_5: Handle<Image>,
+    #[asset(path = "workers/person_6.png")]
+    pub person_6: Handle<Image>,
+    #[asset(path = "workers/person_7.png")]
+    pub person_7: Handle<Image>,
+}
+
+#[derive(AssetCollection, Resource)]
+pub struct BuildingAssets {
+    #[asset(path = "buildings/barracks.png")]
+    pub barracks: Handle<Image>,
+    #[asset(path = "buildings/farm.png")]
+    pub farm: Handle<Image>,
+    #[asset(path = "buildings/house.png")]
+    pub house: Handle<Image>,
+    #[asset(path = "buildings/house_1.png")]
+    pub house_1: Handle<Image>,
+    #[asset(path = "buildings/house_2.png")]
+    pub house_2: Handle<Image>,
+    #[asset(path = "buildings/shade.png")]
+    pub shade: Handle<Image>,
+    #[asset(path = "buildings/stall.png")]
+    pub stall: Handle<Image>,
+    #[asset(path = "buildings/town_centre.png")]
+    pub town_centre: Handle<Image>,
 }
