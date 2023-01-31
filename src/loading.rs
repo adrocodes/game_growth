@@ -75,6 +75,8 @@ pub struct TextureAssets {
 
     #[asset(path = "textures/selector.png")]
     pub texture_selector: Handle<Image>,
+    #[asset(path = "textures/selector_err.png")]
+    pub texture_selector_err: Handle<Image>,
 }
 
 #[derive(AssetCollection, Resource)]
