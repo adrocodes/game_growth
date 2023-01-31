@@ -1,23 +1,37 @@
 use bevy::{prelude::*, ui::FocusPolicy};
 
 use crate::{
+    building::{BuildingModeChange, BuildingState},
     loading::{BuildingAssets, FontAssets},
     GameState,
 };
 
-pub struct UiPlugin;
+pub struct GuiPlugin;
 
-impl Plugin for UiPlugin {
+impl Plugin for GuiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(GameState::Playing).with_system(UiPlugin::spawn))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(ui_reveal_toggle));
+        app.add_event::<PanelStateToggle>()
+            .insert_resource(PanelState::default())
+            .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(GuiPlugin::spawn))
+            .add_system_set(
+                SystemSet::on_update(GameState::Playing)
+                    .with_system(ui_reveal_toggle)
+                    .with_system(on_panel_toggle)
+                    .with_system(GuiPlugin::on_building_btn_click),
+            );
     }
 }
 
 #[derive(Component)]
 struct Panel;
 
-impl UiPlugin {
+#[derive(Component)]
+struct TownCentreBtn;
+
+#[derive(Component)]
+struct BuildingBtn;
+
+impl GuiPlugin {
     fn root() -> NodeBundle {
         NodeBundle {
             style: Style {
@@ -95,28 +109,58 @@ impl UiPlugin {
     }
 
     fn spawn_town_centre_btn(textures: &BuildingAssets) -> ButtonBundle {
-        UiPlugin::build_building_button(textures.town_centre.clone())
+        GuiPlugin::build_building_button(textures.town_centre.clone())
     }
 
     fn spawn(mut commands: Commands, textures: Res<BuildingAssets>, fonts: Res<FontAssets>) {
-        commands.spawn(UiPlugin::root()).with_children(|parent| {
+        commands.spawn(GuiPlugin::root()).with_children(|parent| {
             parent
-                .spawn((Panel, UiPlugin::main_panel_border()))
+                .spawn((Panel, GuiPlugin::main_panel_border()))
                 .with_children(|parent| {
                     parent
-                        .spawn(UiPlugin::main_panel())
+                        .spawn(GuiPlugin::main_panel())
                         .with_children(|parent| {
-                            parent.spawn(UiPlugin::toggle_help(&fonts));
-                            parent.spawn(UiPlugin::spawn_town_centre_btn(&textures));
+                            parent.spawn(GuiPlugin::toggle_help(&fonts));
+                            parent.spawn((
+                                TownCentreBtn,
+                                BuildingBtn,
+                                GuiPlugin::spawn_town_centre_btn(&textures),
+                            ));
                         });
                 });
         });
     }
+
+    fn on_building_btn_click(
+        interaction_query: Query<&Interaction, (Changed<Interaction>, With<BuildingBtn>)>,
+        mut building_event: EventWriter<BuildingModeChange>,
+        mut panel_event: EventWriter<PanelStateToggle>,
+        building_state: Res<BuildingState>,
+        panel_state: Res<PanelState>,
+    ) {
+        for interaction in interaction_query.iter() {
+            match *interaction {
+                Interaction::Clicked => {
+                    let state = !building_state.mode_active;
+
+                    if panel_state.active && state {
+                        panel_event.send(PanelStateToggle);
+                    }
+
+                    building_event.send(BuildingModeChange(state));
+                }
+                _ => {}
+            };
+        }
+    }
 }
 
+#[derive(Resource)]
 struct PanelState {
     active: bool,
 }
+
+struct PanelStateToggle;
 
 impl Default for PanelState {
     fn default() -> Self {
@@ -124,12 +168,18 @@ impl Default for PanelState {
     }
 }
 
-fn ui_reveal_toggle(
-    keys: Res<Input<KeyCode>>,
-    mut query: Query<&mut Style, With<Panel>>,
-    mut panel_state: Local<PanelState>,
-) {
+fn ui_reveal_toggle(keys: Res<Input<KeyCode>>, mut event: EventWriter<PanelStateToggle>) {
     if keys.just_pressed(KeyCode::Q) {
+        event.send(PanelStateToggle);
+    }
+}
+
+fn on_panel_toggle(
+    event: EventReader<PanelStateToggle>,
+    mut query: Query<&mut Style, With<Panel>>,
+    mut panel_state: ResMut<PanelState>,
+) {
+    if !event.is_empty() {
         let mut style = query.single_mut();
         let goal: f32 = match panel_state.active {
             true => -450.0,
@@ -139,4 +189,6 @@ fn ui_reveal_toggle(
         style.position.bottom = Val::Px(goal);
         panel_state.active = !panel_state.active;
     }
+
+    event.clear();
 }

@@ -48,7 +48,7 @@ impl Plugin for GamePlugin {
             .add_plugin(MousePositionPlugin)
             .add_plugin(InternalAudioPlugin)
             .add_plugin(WorldGenPlugin)
-            .add_plugin(ui::UiPlugin)
+            .add_plugin(ui::GuiPlugin)
             .add_plugin(BuildingPlugin);
 
         #[cfg(debug_assertions)]
