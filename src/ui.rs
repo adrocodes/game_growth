@@ -1,7 +1,7 @@
 use bevy::{prelude::*, ui::FocusPolicy};
 
 use crate::{
-    building::{BuildingModeChange, BuildingState},
+    building::{BuildingModeChange, BuildingState, BuildingType},
     loading::{BuildingAssets, FontAssets},
     GameState,
 };
@@ -29,7 +29,7 @@ struct Panel;
 struct TownCentreBtn;
 
 #[derive(Component)]
-struct BuildingBtn;
+struct BuildingBtn(BuildingType);
 
 impl GuiPlugin {
     fn root() -> NodeBundle {
@@ -123,7 +123,7 @@ impl GuiPlugin {
                             parent.spawn(GuiPlugin::toggle_help(&fonts));
                             parent.spawn((
                                 TownCentreBtn,
-                                BuildingBtn,
+                                BuildingBtn(BuildingType::TownCentre),
                                 GuiPlugin::spawn_town_centre_btn(&textures),
                             ));
                         });
@@ -132,13 +132,13 @@ impl GuiPlugin {
     }
 
     fn on_building_btn_click(
-        interaction_query: Query<&Interaction, (Changed<Interaction>, With<BuildingBtn>)>,
+        interaction_query: Query<(&Interaction, &BuildingBtn), Changed<Interaction>>,
         mut building_event: EventWriter<BuildingModeChange>,
         mut panel_event: EventWriter<PanelStateToggle>,
         building_state: Res<BuildingState>,
         panel_state: Res<PanelState>,
     ) {
-        for interaction in interaction_query.iter() {
+        for (interaction, btn) in interaction_query.iter() {
             match *interaction {
                 Interaction::Clicked => {
                     let state = !building_state.mode_active;
@@ -147,7 +147,12 @@ impl GuiPlugin {
                         panel_event.send(PanelStateToggle);
                     }
 
-                    building_event.send(BuildingModeChange(state));
+                    let building = match state {
+                        true => Some(btn.0),
+                        false => None,
+                    };
+
+                    building_event.send(BuildingModeChange { state, building });
                 }
                 _ => {}
             };
