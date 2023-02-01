@@ -8,6 +8,21 @@ use crate::{
     GameState,
 };
 
+#[derive(Clone, Copy)]
+pub enum BuildingType {
+    TownCentre,
+    Barracks,
+}
+
+impl BuildingType {
+    fn get_entity(&self, commands: &mut Commands, textures: &BuildingAssets) -> Option<Entity> {
+        match self {
+            BuildingType::TownCentre => Some(TownCentre::build(commands, textures)),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Component)]
 pub struct Buildable;
 
@@ -36,16 +51,23 @@ impl TownCentre {
 #[derive(Resource)]
 pub struct BuildingState {
     pub mode_active: bool,
+    pub building: Option<BuildingType>,
 }
 
 impl Default for BuildingState {
     fn default() -> Self {
-        Self { mode_active: false }
+        Self {
+            mode_active: false,
+            building: None,
+        }
     }
 }
 
 // Start - Building Events
-pub struct BuildingModeChange(pub bool);
+pub struct BuildingModeChange {
+    pub state: bool,
+    pub building: Option<BuildingType>,
+}
 pub struct TownCentreBuilt;
 // End - Building Events
 
@@ -64,7 +86,8 @@ impl Plugin for BuildingPlugin {
                     .with_system(BuildingIndicator::track_position)
                     .with_system(BuildingIndicator::track_visibility)
                     .with_system(BuildingPlugin::listen_build_mode_event)
-                    .with_system(BuildingPlugin::cancel_build_mode),
+                    .with_system(BuildingPlugin::cancel_build_mode)
+                    .with_system(BuildingPlugin::on_building_placed),
             );
     }
 }
@@ -76,7 +99,8 @@ impl BuildingPlugin {
     ) {
         if !event.is_empty() {
             for change in event.iter() {
-                state.mode_active = change.0;
+                state.mode_active = change.state;
+                state.building = change.building;
             }
         }
 
@@ -86,17 +110,51 @@ impl BuildingPlugin {
     fn cancel_build_mode(keys: Res<Input<KeyCode>>, mut state: ResMut<BuildingState>) {
         if keys.just_pressed(KeyCode::Escape) {
             state.mode_active = false;
+            state.building = None;
+        }
+    }
+
+    fn on_building_placed(
+        buttons: Res<Input<MouseButton>>,
+        state: Res<BuildingState>,
+        mut commands: Commands,
+        textures: Res<BuildingAssets>,
+        indicator_query: Query<&BuildingIndicator>,
+    ) {
+        if buttons.just_pressed(MouseButton::Left) && state.mode_active {
+            let indicator = indicator_query.single();
+
+            if !indicator.valid_tile {
+                return;
+            }
+
+            if let Some(tile_entity) = indicator.tile_entity {
+                if let Some(building) = state.building {
+                    let child = building.get_entity(&mut commands, &textures);
+
+                    if let Some(child) = child {
+                        commands.entity(tile_entity).push_children(&[child]);
+                        commands.entity(tile_entity).remove::<Buildable>();
+                    }
+                }
+            }
         }
     }
 }
 
 #[derive(Component)]
-pub struct BuildingIndicator;
+pub struct BuildingIndicator {
+    valid_tile: bool,
+    tile_entity: Option<Entity>,
+}
 
 impl BuildingIndicator {
     fn spawn(mut commands: Commands, textures: Res<TextureAssets>) {
         commands.spawn((
-            BuildingIndicator,
+            BuildingIndicator {
+                valid_tile: false,
+                tile_entity: None,
+            },
             SpriteBundle {
                 texture: textures.texture_selector.clone(),
                 transform: Transform::from_xyz(0.0, 0.0, 5.0),
@@ -108,23 +166,27 @@ impl BuildingIndicator {
     }
 
     fn track_position(
-        mut indicator_query: Query<(&mut Transform, &mut Handle<Image>), With<BuildingIndicator>>,
-        tile_query: Query<(&Bounds2, Option<&Buildable>), With<Tile>>,
+        mut indicator_query: Query<(&mut Transform, &mut Handle<Image>, &mut BuildingIndicator)>,
+        tile_query: Query<(Entity, &Bounds2, Option<&Buildable>), With<Tile>>,
         mouse: Res<MousePosition>,
         textures: Res<TextureAssets>,
     ) {
-        let (mut transform, mut texture) = indicator_query.single_mut();
+        let (mut transform, mut texture, mut indicator) = indicator_query.single_mut();
 
-        for (bound, buildable) in tile_query.iter() {
+        for (entity, bound, buildable) in tile_query.iter() {
             if bound.in_bounds_centered(mouse.world) {
                 transform.translation = Vec3::new(bound.position.x, bound.position.y, 5.0);
 
                 match buildable {
                     Some(_) => {
                         *texture = textures.texture_selector.clone();
+                        indicator.valid_tile = true;
+                        indicator.tile_entity = Some(entity);
                     }
                     None => {
                         *texture = textures.texture_selector_err.clone();
+                        indicator.valid_tile = false;
+                        indicator.tile_entity = None;
                     }
                 };
 
