@@ -22,10 +22,23 @@ pub enum BuildingType {
 }
 
 impl BuildingType {
+    fn generic_build(&self, commands: &mut Commands, textures: &BuildingAssets) -> Entity {
+        commands
+            .spawn((
+                Building,
+                SpriteBundle {
+                    texture: self.get_texture(textures),
+                    transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                    ..default()
+                },
+            ))
+            .id()
+    }
+
     fn get_entity(&self, commands: &mut Commands, textures: &BuildingAssets) -> Option<Entity> {
         match self {
             BuildingType::TownCentre => Some(TownCentre::build(commands, textures)),
-            _ => None,
+            _ => Some(self.generic_build(commands, textures)),
         }
     }
 
@@ -59,7 +72,7 @@ impl TownCentre {
                 Building,
                 TownCentre,
                 SpriteBundle {
-                    texture: textures.town_centre.clone(),
+                    texture: BuildingType::TownCentre.get_texture(textures),
                     transform: Transform::from_xyz(0.0, 0.0, 1.0),
                     ..default()
                 },
