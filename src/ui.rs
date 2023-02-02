@@ -1,10 +1,15 @@
 use bevy::{prelude::*, ui::FocusPolicy};
 
 use crate::{
-    building::{BuildingModeChange, BuildingState, BuildingType},
+    building::{BuildingModeChange, BuildingState, BuildingType, TownCentreBuilt},
     loading::{BuildingAssets, FontAssets},
     GameState,
 };
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, SystemLabel)]
+pub enum GuiPluginLabels {
+    EnterBuildingMode,
+}
 
 pub struct GuiPlugin;
 
@@ -17,13 +22,19 @@ impl Plugin for GuiPlugin {
                 SystemSet::on_update(GameState::Playing)
                     .with_system(ui_reveal_toggle)
                     .with_system(on_panel_toggle)
-                    .with_system(GuiPlugin::on_building_btn_click),
+                    .with_system(
+                        GuiPlugin::on_building_btn_click.label(GuiPluginLabels::EnterBuildingMode),
+                    )
+                    .with_system(GuiPlugin::on_town_centre_built),
             );
     }
 }
 
 #[derive(Component)]
 struct Panel;
+
+#[derive(Component)]
+struct MainPanel;
 
 #[derive(Component)]
 struct TownCentreBtn;
@@ -118,7 +129,7 @@ impl GuiPlugin {
                 .spawn((Panel, GuiPlugin::main_panel_border()))
                 .with_children(|parent| {
                     parent
-                        .spawn(GuiPlugin::main_panel())
+                        .spawn((MainPanel, GuiPlugin::main_panel()))
                         .with_children(|parent| {
                             parent.spawn(GuiPlugin::toggle_help(&fonts));
                             parent.spawn((
@@ -157,6 +168,43 @@ impl GuiPlugin {
                 _ => {}
             };
         }
+    }
+
+    fn on_town_centre_built(
+        event: EventReader<TownCentreBuilt>,
+        town_centre_btn: Query<Entity, With<TownCentreBtn>>,
+        panel: Query<Entity, With<MainPanel>>,
+        mut commands: Commands,
+        textures: Res<BuildingAssets>,
+    ) {
+        if event.is_empty() {
+            return;
+        }
+
+        let town_centre_btn = town_centre_btn.single();
+        commands.entity(town_centre_btn).despawn_recursive();
+
+        let panel = panel.single();
+        commands.entity(panel).add_children(|parent| {
+            let buttons: Vec<BuildingType> = vec![
+                BuildingType::Barracks,
+                BuildingType::Farm,
+                BuildingType::House,
+                BuildingType::HouseOne,
+                BuildingType::HouseTwo,
+                BuildingType::Shade,
+                BuildingType::Stall,
+            ];
+
+            for button in buttons {
+                parent.spawn((
+                    BuildingBtn(button),
+                    GuiPlugin::build_building_button(button.get_texture(&textures)),
+                ));
+            }
+        });
+
+        event.clear();
     }
 }
 

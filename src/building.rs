@@ -5,13 +5,20 @@ use crate::{
     loading::{BuildingAssets, TextureAssets},
     mouse_position::MousePosition,
     tiles::Tile,
+    ui::GuiPluginLabels,
     GameState,
 };
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum BuildingType {
     TownCentre,
     Barracks,
+    Farm,
+    HouseOne,
+    HouseTwo,
+    House,
+    Shade,
+    Stall,
 }
 
 impl BuildingType {
@@ -19,6 +26,19 @@ impl BuildingType {
         match self {
             BuildingType::TownCentre => Some(TownCentre::build(commands, textures)),
             _ => None,
+        }
+    }
+
+    pub fn get_texture(&self, textures: &BuildingAssets) -> Handle<Image> {
+        match self {
+            BuildingType::TownCentre => textures.town_centre.clone(),
+            BuildingType::Barracks => textures.barracks.clone(),
+            BuildingType::Farm => textures.farm.clone(),
+            BuildingType::HouseOne => textures.house_1.clone(),
+            BuildingType::HouseTwo => textures.house_2.clone(),
+            BuildingType::House => textures.house.clone(),
+            BuildingType::Shade => textures.shade.clone(),
+            BuildingType::Stall => textures.stall.clone(),
         }
     }
 }
@@ -87,7 +107,10 @@ impl Plugin for BuildingPlugin {
                     .with_system(BuildingIndicator::track_visibility)
                     .with_system(BuildingPlugin::listen_build_mode_event)
                     .with_system(BuildingPlugin::cancel_build_mode)
-                    .with_system(BuildingPlugin::on_building_placed),
+                    .with_system(
+                        BuildingPlugin::on_building_placed
+                            .after(GuiPluginLabels::EnterBuildingMode),
+                    ),
             );
     }
 }
@@ -116,10 +139,11 @@ impl BuildingPlugin {
 
     fn on_building_placed(
         buttons: Res<Input<MouseButton>>,
-        state: Res<BuildingState>,
+        mut state: ResMut<BuildingState>,
         mut commands: Commands,
         textures: Res<BuildingAssets>,
         indicator_query: Query<&BuildingIndicator>,
+        mut event: EventWriter<TownCentreBuilt>,
     ) {
         if buttons.just_pressed(MouseButton::Left) && state.mode_active {
             let indicator = indicator_query.single();
@@ -135,6 +159,12 @@ impl BuildingPlugin {
                     if let Some(child) = child {
                         commands.entity(tile_entity).push_children(&[child]);
                         commands.entity(tile_entity).remove::<Buildable>();
+
+                        if building == BuildingType::TownCentre {
+                            event.send(TownCentreBuilt);
+                            state.mode_active = false;
+                            state.building = None;
+                        }
                     }
                 }
             }
