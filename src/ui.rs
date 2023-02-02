@@ -209,8 +209,8 @@ impl GuiPlugin {
 }
 
 #[derive(Resource)]
-struct PanelState {
-    active: bool,
+pub struct PanelState {
+    pub active: bool,
 }
 
 struct PanelStateToggle;

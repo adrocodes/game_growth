@@ -5,7 +5,7 @@ use crate::{
     loading::{BuildingAssets, TextureAssets},
     mouse_position::MousePosition,
     tiles::Tile,
-    ui::GuiPluginLabels,
+    ui::{GuiPluginLabels, PanelState},
     GameState,
 };
 
@@ -157,8 +157,9 @@ impl BuildingPlugin {
         textures: Res<BuildingAssets>,
         indicator_query: Query<&BuildingIndicator>,
         mut event: EventWriter<TownCentreBuilt>,
+        panel_state: Res<PanelState>,
     ) {
-        if buttons.just_pressed(MouseButton::Left) && state.mode_active {
+        if buttons.just_pressed(MouseButton::Left) && state.mode_active && !panel_state.active {
             let indicator = indicator_query.single();
 
             if !indicator.valid_tile {
